@@ -1,24 +1,21 @@
 import http from 'node:http'
 
-const tasks = []
+import { json } from './middlewares/json.js'
+import { routes } from './routes.js'
+//import { extractQueryParams } from './utils/extract-query-params.js'
 
-console.log(tasks)
 
-const server = http.createServer((req, res) => {
+const server = http.createServer(async (req, res) => {
   const { method, url } = req
 
-  if (method === 'GET' && url === '/tasks') {
-    return res
-      .setHeader('Content-Type', 'application/json')
-      .end(JSON.stringify(tasks))
-  }
-  if (method === 'POST' && url === '/tasks') {
-    tasks.push({
-      id: 1,
-      description: 'first task'
-    })
+  await json(req, res)
 
-    return res.writeHead(201).end()
+  const route = routes.find(route => {
+    return route.method === method && route.path === url
+  })
+
+  if (route) {
+    return route.handler(req, res)
   }
   return res.writeHead(404).end()
 })
