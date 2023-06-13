@@ -17,11 +17,13 @@ export const routes = [
     method: 'POST',
     path: '/tasks',
     handler: (req, res) => {
-      const { description } = req.body
+      const { description, title } = req.body
 
       const task = {
         id: randomUUID(),
+        title,
         description,
+        created_at: new Date(),
       }
       database.insert('tasks', task)
       return res.writeHead(201).end()  
