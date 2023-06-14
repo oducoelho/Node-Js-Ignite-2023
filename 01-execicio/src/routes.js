@@ -24,7 +24,9 @@ export const routes = [
         id: randomUUID(),
         title,
         description,
+        completed_at: null,
         created_at: new Date(),
+        updated_at: new Date(),
       }
       database.insert('tasks', task)
       return res.writeHead(201).end()  
@@ -37,9 +39,16 @@ export const routes = [
       const { id } = req.params
       const { title, description } = req.body
 
+      if(!title || !description) {
+        return res.writeHead(400).end(
+          JSON.stringify({ message: 'title or description are required' })
+        )
+      }
+
       database.update('tasks', id, {
         title,
-        description
+        description,
+        updated_at: new Date(),
       })
 
       return res.writeHead(204).end()
@@ -52,6 +61,28 @@ export const routes = [
       const { id } = req.params
 
       database.delete('tasks', id)
+
+      return res.writeHead(204).end()
+    }
+  },
+  {
+    method: 'PATCH',
+    path: buildRoutePath('/tasks/:id/complete'),
+    handler: (req, res) => {
+      const { id } = req.params
+
+      const [task] = database.select('tasks', { id })
+
+      if (!task) {
+        return res.writeHead(404).end(
+          JSON.stringify({ message: 'task not found' })
+        )
+      }
+
+      const isTaskCompleted = !!task.completed_at
+      const completed_at = isTaskCompleted ? null : new Date()
+
+      database.update('tasks', id, { completed_at })
 
       return res.writeHead(204).end()
     }
